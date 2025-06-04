@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once('../database/db.php');
-require_once('../security/connexion.php');
+require_once(__DIR__ . '/../database/db.php');
+require_once(__DIR__ . '/../security/connexion.php');
 
 // Vérification de la sécurité de la session
 if(!isset($_SESSION['token']) || !isTokenValid($_SESSION['token'])){
@@ -37,24 +37,30 @@ $vehicule = $result->fetch_assoc();
 $result = $conn->query("SELECT id, nom FROM clients ORDER BY nom");
 $clients = $result->fetch_all(MYSQLI_ASSOC);
 
-// Traitement du formulaire
+// Traitement du formulaire avec vérification CSRF
 if($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $marque = trim($_POST['marque']);
-    $modele = trim($_POST['modele']);
-    $annee = $_POST['annee'] ? (int)$_POST['annee'] : null;
-    $client_id = $_POST['client_id'] ? (int)$_POST['client_id'] : null;
-    
-    if(empty($marque) || empty($modele)) {
-        $error = "Les champs Marque et Modèle sont obligatoires";
+    // Vérification du token CSRF
+    if(!isset($_POST['csrf_token']) || !verifyCSRFToken($_POST['csrf_token'])) {
+        $error = "Erreur de sécurité : action non autorisée.";
     } else {
-        $stmt = $conn->prepare("UPDATE vehicules SET marque = ?, modele = ?, annee = ?, client_id = ? WHERE id = ?");
-        $stmt->bind_param("ssiii", $marque, $modele, $annee, $client_id, $id);
+        // Nettoyage et validation des entrées
+        $marque = sanitizeInput($_POST['marque']);
+        $modele = sanitizeInput($_POST['modele']);
+        $annee = isset($_POST['annee']) && is_numeric($_POST['annee']) ? (int)$_POST['annee'] : null;
+        $client_id = isset($_POST['client_id']) && is_numeric($_POST['client_id']) ? (int)$_POST['client_id'] : null;
         
-        if($stmt->execute()) {
-            header("Location: index.php?success=1");
-            exit;
+        if(empty($marque) || empty($modele)) {
+            $error = "Les champs Marque et Modèle sont obligatoires";
         } else {
-            $error = "Erreur lors de la modification du véhicule: " . $conn->error;
+            $stmt = $conn->prepare("UPDATE vehicules SET marque = ?, modele = ?, annee = ?, client_id = ? WHERE id = ?");
+            $stmt->bind_param("ssiii", $marque, $modele, $annee, $client_id, $id);
+            
+            if($stmt->execute()) {
+                header("Location: index.php?success=1");
+                exit;
+            } else {
+                $error = "Erreur lors de la modification du véhicule";
+            }
         }
     }
 }
@@ -69,6 +75,8 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/styles.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Ajout de l'en-tête CSP pour limiter les sources de contenu -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com;">
 </head>
 <body>
     <div class="container mt-5">
@@ -79,21 +87,24 @@ if($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         <?php if($error): ?>
         <div class="alert alert-danger" role="alert">
-            <?= $error ?>
+            <?= htmlspecialchars($error) ?>
         </div>
         <?php endif; ?>
         
         <div class="card">
             <div class="card-body">
                 <form method="POST" action="">
+                    <!-- Ajout du token CSRF -->
+                    <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
+                    
                     <div class="mb-3">
                         <label for="marque" class="form-label">Marque *</label>
-                        <input type="text" class="form-control" id="marque" name="marque" value="<?= htmlspecialchars($vehicule['marque']) ?>" required>
+                        <input type="text" class="form-control" id="marque" name="marque" value="<?= htmlspecialchars($vehicule['marque']) ?>" required maxlength="50">
                     </div>
                     
                     <div class="mb-3">
                         <label for="modele" class="form-label">Modèle *</label>
-                        <input type="text" class="form-control" id="modele" name="modele" value="<?= htmlspecialchars($vehicule['modele']) ?>" required>
+                        <input type="text" class="form-control" id="modele" name="modele" value="<?= htmlspecialchars($vehicule['modele']) ?>" required maxlength="50">
                     </div>
                     
                     <div class="mb-3">

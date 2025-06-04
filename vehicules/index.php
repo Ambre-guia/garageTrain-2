@@ -11,14 +11,20 @@ if(!isset($_SESSION['token']) || !isTokenValid($_SESSION['token'])){
 
 $conn = connectDB();
 
-// Suppression d'un véhicule
-if(isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    $id = $_GET['delete'];
-    $stmt = $conn->prepare("DELETE FROM vehicules WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    $stmt->execute();
-    header("Location: index.php?success=1");
-    exit;
+// Suppression d'un véhicule avec vérification CSRF
+if(isset($_POST['delete']) && is_numeric($_POST['delete']) && isset($_POST['csrf_token'])) {
+    // Vérification du token CSRF
+    if(verifyCSRFToken($_POST['csrf_token'])) {
+        $id = (int)$_POST['delete'];
+        $stmt = $conn->prepare("DELETE FROM vehicules WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        header("Location: index.php?success=1");
+        exit;
+    } else {
+        header("Location: index.php?error=csrf");
+        exit;
+    }
 }
 
 // Récupération des véhicules avec les noms des clients
@@ -39,6 +45,8 @@ $vehicules = $result->fetch_all(MYSQLI_ASSOC);
     <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/styles.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Ajout de l'en-tête CSP pour limiter les sources de contenu -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com;">
 </head>
 <body>
     <div class="container mt-5">
@@ -50,6 +58,12 @@ $vehicules = $result->fetch_all(MYSQLI_ASSOC);
         <?php if(isset($_GET['success'])): ?>
         <div class="alert alert-success" role="alert">
             Opération réalisée avec succès !
+        </div>
+        <?php endif; ?>
+        
+        <?php if(isset($_GET['error']) && $_GET['error'] === 'csrf'): ?>
+        <div class="alert alert-danger" role="alert">
+            Erreur de sécurité : action non autorisée.
         </div>
         <?php endif; ?>
         
@@ -83,10 +97,15 @@ $vehicules = $result->fetch_all(MYSQLI_ASSOC);
                                     <td><?= htmlspecialchars($vehicule['marque']) ?></td>
                                     <td><?= htmlspecialchars($vehicule['modele']) ?></td>
                                     <td><?= $vehicule['annee'] ?></td>
-                                    <td><?= htmlspecialchars($vehicule['client_nom']) ?></td>
+                                    <td><?= htmlspecialchars($vehicule['client_nom'] ?? '') ?></td>
                                     <td>
                                         <a href="modifier.php?id=<?= $vehicule['id'] ?>" class="btn btn-sm btn-warning"><i class="fa fa-edit"></i></a>
-                                        <a href="index.php?delete=<?= $vehicule['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')"><i class="fa fa-trash"></i></a>
+                                        <!-- Formulaire pour la suppression avec token CSRF -->
+                                        <form method="POST" action="" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">
+                                            <input type="hidden" name="delete" value="<?= $vehicule['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce véhicule ?')"><i class="fa fa-trash"></i></button>
+                                        </form>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
