@@ -49,7 +49,7 @@ if($requestMethod == 'POST' && isset($_POST['sub']) && $_POST['sub'] == "true"){
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/styles.min.css">
     <!-- Ajout de l'en-tête CSP pour limiter les sources de contenu -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' https://images.assetsdelivery.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com; img-src 'self' https://images.assetsdelivery.com;">
 </head>
 
 <body>

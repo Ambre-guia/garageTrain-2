@@ -46,7 +46,7 @@ $vehicules = $result->fetch_all(MYSQLI_ASSOC);
     <link rel="stylesheet" href="../assets/css/styles.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- Ajout de l'en-tête CSP pour limiter les sources de contenu -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com; font-src https://cdnjs.cloudflare.com;">
 </head>
 <body>
     <div class="container mt-5">
