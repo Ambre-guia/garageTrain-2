@@ -6,11 +6,11 @@ function generateToken() {
     return bin2hex(random_bytes(32));
 }
 
-function loginWithToken($username, $password) {
+function loginWithToken($email, $password) {
   $conn = connectDB();
-    $query = "SELECT id, username, password_hash FROM administrateurs WHERE username = ?";
+    $query = "SELECT id, email, password_hash FROM administrateurs WHERE email = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $username);
+    $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 

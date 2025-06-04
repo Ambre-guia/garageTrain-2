@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS rendezvous (
 
 CREATE TABLE IF NOT EXISTS administrateurs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
+    email VARCHAR(50) NOT NULL,
     password_hash VARCHAR(255) NOT NULL
 );
 
@@ -36,9 +36,9 @@ CREATE TABLE IF NOT EXISTS tokens (
     FOREIGN KEY (user_id) REFERENCES administrateurs(id)
 );
 
-INSERT INTO administrateurs (username, password_hash) VALUES
-('admin1', '$2y$10$TOBO0ipevsQEWJ7oME7iEegjPT7s3HL9K5PJB.qIiXwj1ED2ZhvTi'),
-('admin2', '$2y$10$TOBO0ipevsQEWJ7oME7iEegjPT7s3HL9K5PJB.qIiXwj1ED2ZhvTi');
+INSERT INTO administrateurs (email, password_hash) VALUES
+('admin1@email.com', '$2y$10$fGmV71ztLEo51Ekx5ormMOjhw1Z1liibQbwNMZZj0Xy/P8rp5CT4q'),
+('admin2@email.com', '$2y$10$fGmV71ztLEo51Ekx5ormMOjhw1Z1liibQbwNMZZj0Xy/P8rp5CT4q');
 
 INSERT INTO clients (nom, email, telephone) VALUES
 ('John Doe', 'john.doe@email.com', '123456789'),
