@@ -1,6 +1,6 @@
 <?php
 
-require_once('database/db.php');
+require_once(__DIR__ . '/../database/db.php');
 
 function generateToken() {
     return bin2hex(random_bytes(32));

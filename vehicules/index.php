@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once('../database/db.php');
-require_once('../security/connexion.php');
+require_once(__DIR__ . '/../database/db.php');
+require_once(__DIR__ . '/../security/connexion.php');
 
 // Vérification de l'authentification
 if(!isset($_SESSION['token']) || !isTokenValid($_SESSION['token'])){
